@@ -6,7 +6,7 @@ https://github.com/JayBlackedOut/hass-nhlapi/blob/master/README.md
 
 import logging
 from datetime import timedelta, datetime as dt
-from pynhl import Schedule, Plays
+from pynhl import Schedule, Plays, NHLApiError, NHLApiTimeoutError
 import voluptuous as vol
 
 from homeassistant.components.sensor import PLATFORM_SCHEMA
@@ -103,8 +103,11 @@ class NHLSensor(Entity):
             games = schedule.game_info() or {}
             dates = schedule.datetime_info() or {}
             broadcasts = schedule.broadcast_info() or {}
-        except Exception as e:  # TODO: Narrow the exception type.
-            _LOGGER.error("Failed to fetch schedule data: %s", e)
+        except NHLApiTimeoutError:
+            _LOGGER.warning("Request timed out fetching schedule data")
+            return {}, ''
+        except NHLApiError as e:
+            _LOGGER.error("Error fetching schedule data: %s", e)
             return {}, ''
         game_id = games.get("game_id")
         plays = {}
@@ -114,8 +117,12 @@ class NHLSensor(Entity):
                 plays_obj = Plays(game_id)
                 plays = plays_obj.scoring_info() or {}
                 linescore = plays_obj.linescore_info() or {}
-            except Exception as e:  # TODO: Narrow the exception type.
-                _LOGGER.error("Failed to fetch play data for game %s: %s", game_id, e)
+            except NHLApiTimeoutError:
+                _LOGGER.warning("Request timed out fetching play data")
+                return {}, ''
+            except NHLApiError as e:
+                _LOGGER.error("Error fetching play data: %s", e)
+            return {}, ''
         # Localize the returned UTC time values.
         if dates.get('next_game_datetime') and dates['next_game_datetime'] != "None":
             dttm = dt.strptime(dates['next_game_datetime'], '%Y-%m-%dT%H:%M:%S%z')
