@@ -98,37 +98,39 @@ class NHLSensor(Entity):
 
     def get_game_data(self):
         """Get the latest data from the NHL API via pynhl."""
-        # Get game info (single API call for schedule data)
-        schedule = Schedule(self._team_abbrev)
-        games = schedule.game_info()
-        dates = schedule.datetime_info()
-        broadcasts = schedule.broadcast_info() or {}
-        # Get Game ID
-        game_id = games["game_id"]
-        # Get scoring and linescore info (single API call for play data)
-        plays_obj = Plays(game_id)
-        plays = plays_obj.scoring_info() or {}
-        linescore = plays_obj.linescore_info() or {}
+        try:
+            schedule = Schedule(self._team_abbrev)
+            games = schedule.game_info() or {}
+            dates = schedule.datetime_info() or {}
+            broadcasts = schedule.broadcast_info() or {}
+        except Exception as e:  # TODO: Narrow the exception type.
+            _LOGGER.error("Failed to fetch schedule data: %s", e)
+            return {}, ''
+        game_id = games.get("game_id")
+        plays = {}
+        linescore = {}
+        if game_id:
+            try:
+                plays_obj = Plays(game_id)
+                plays = plays_obj.scoring_info() or {}
+                linescore = plays_obj.linescore_info() or {}
+            except Exception as e:  # TODO: Narrow the exception type.
+                _LOGGER.error("Failed to fetch play data for game %s: %s", game_id, e)
         # Localize the returned UTC time values.
-        if dates['next_game_datetime'] != "None":
-            dttm = dt.strptime(dates['next_game_datetime'],
-                               '%Y-%m-%dT%H:%M:%S%z')
+        if dates.get('next_game_datetime') and dates['next_game_datetime'] != "None":
+            dttm = dt.strptime(dates['next_game_datetime'], '%Y-%m-%dT%H:%M:%S%z')
             dttm_local = dt_util.as_local(dttm)
             time = {
                 'next_game_time': dttm_local.strftime('%-I:%M %p'),
                 'next_game_datetime': dttm_local
-                }
-            # If next game is scheduled Today or Tomorrow,
-            # return "Today" or "Tomorrow". Else, return
-            # the actual date of the next game.
+            }
             next_game_date = dttm_local.strftime('%B %-d, %Y')
             now = dt_util.as_local(dt.now())
             pick = {
                 now.strftime("%Y-%m-%d"): "Today,",
                 (now + timedelta(days=1)).strftime("%Y-%m-%d"): "Tomorrow,"
             }
-            game_date = pick.get(dttm_local.strftime("%Y-%m-%d"),
-                                 next_game_date)
+            game_date = pick.get(dttm_local.strftime("%Y-%m-%d"), next_game_date)
         else:
             time = {
                 'next_game_time': '',
@@ -137,7 +139,6 @@ class NHLSensor(Entity):
             game_date = 'No Game Scheduled'
             next_game_date = ''
         next_game = {'next_game_date': next_game_date}
-        # Merge all attributes to a single dict.
         all_attr = {
             **broadcasts,
             **linescore,
@@ -145,7 +146,7 @@ class NHLSensor(Entity):
             **plays,
             **time,
             **next_game
-            }
+        }
         next_date_time = game_date + " " + time['next_game_time']
         return all_attr, next_date_time
 
@@ -192,7 +193,6 @@ class NHLSensor(Entity):
         """Update the sensor."""
         self.set_state()
 
-
 def event_list(event_id=0, clear=False, events=[]):
     """Keep a list of goal event IDs returned by the API."""
     events.append(event_id)
@@ -200,7 +200,6 @@ def event_list(event_id=0, clear=False, events=[]):
     if clear:
         events.clear()
     return events
-
 
 def goal_event_handler(goal_team_abbrev, goal_event_id, goal_tracked_team, hass):
     """Handle firing of the goal event."""
