@@ -18,7 +18,7 @@ from homeassistant.helpers.event import track_point_in_time
 
 _LOGGER = logging.getLogger(__name__)
 
-__version__ = '1.0.2'
+__version__ = '1.0.3'
 
 CONF_ABBREV = 'team_abbrev'
 CONF_NAME = 'name'
@@ -122,7 +122,7 @@ class NHLSensor(Entity):
                 return {}, ''
             except NHLApiError as e:
                 _LOGGER.error("Error fetching play data: %s", e)
-            return {}, ''
+                return {}, ''
         # Localize the returned UTC time values.
         if dates.get('next_game_datetime') and dates['next_game_datetime'] != "None":
             dttm = dt.strptime(dates['next_game_datetime'], '%Y-%m-%dT%H:%M:%S%z')
