@@ -84,6 +84,7 @@ The sensor will return the following state attributes whether or not a game is i
 | next_game_time    | string  | The time of the next game. This will be localized based on your Home Assistant configured timezone.                                                                                  |
 | next_game_datetime    | string  | The date and time of the next game. This will be localized based on your Home Assistant configured timezone.                                                                                  |
 
+
 The sensor will also return the following state attributes when a game is in progress:
 
 | attribute         | type    | usage                                                             |
@@ -110,7 +111,18 @@ The sensor will also return the following state attributes when a game is in pro
 | is_intermission   | boolean | Returns `true` if it is currently between periods.                |
 | time_remaining    | string  | The time remaining in the current period.                         |
 | goal_tracked_team | boolean | Returns `true` if the last goal was scored by the team being tracked. Otherwise, returns `false`. Can be useful for goal alerts.                                                                    |
+| game_type         | integer  | 1: pre-season, 2: regular season, 3: post-season.                 |
 
+The sensor will return the following attributes for playoff games:
+| attribute         | type    | usage                                                             |
+|-------------------|---------|-------------------------------------------------------------------|
+| series_round         | integer  | The current round. |
+| series_abbrev      | string | R followed by the series round number.                     |
+| series_game     | integer | The game number of the current series.                |
+| series_top_seed    | string  | The team abbreviation of the higher ranked team in the series.                   |
+| series_top_seed_wins    | integer  | The number of wins the top seeded team has in the current series.                   |
+| series_bottom_seed    | string  | The team abbreviation of the lower ranked team in the series.                    |
+| series_bottom_seed_wins    | integer  | The number of wins the bottom seeded team has in the current series.                     |
 
 ## Examples
 Display info in the front end: [frontend.md](https://github.com/JayBlackedOut/hass-nhlapi/blob/master/frontend.md)  
