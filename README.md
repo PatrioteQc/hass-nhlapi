@@ -60,7 +60,7 @@ The sensor will expose the status of the tracked team's scheduled game for the d
 | CRIT                   | The scheduled game is within 5 minutes of the 3rd period's end.                           |
 | OVER                   | The scheduled game has recently ended.                                                    |
 | FINAL                  | The scheduled game is over and the score is final.                                        |
-| OFF                    | The scheduled game is over and the score is official                                      |
+| OFF                    | The scheduled game is over and the score is official.                                     |
 | No Game Scheduled      | There are no scheduled games upcoming.                                                    |
 
 The sensor will return the following state attributes whether or not a game is in progress:
