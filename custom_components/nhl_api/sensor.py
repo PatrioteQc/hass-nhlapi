@@ -187,7 +187,7 @@ class NHLSensor(Entity):
         game_state = self._state
         if game_state == "PRE":
             polling_delta = PREGAME_SCAN_INTERVAL
-        elif game_state in [None, "LIVE", "CRIT"]:
+        elif game_state in [None, "LIVE", "CRIT", "OVER"]:
             if self._scan_interval > LIVE_SCAN_INTERVAL:
                 polling_delta = self._scan_interval
             else:
